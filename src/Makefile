@@ -26,6 +26,7 @@ This Makefile supports the following options:
                   win64   = MinGW cross-build for 64-bit Windows
                   dos     = DJGPP cross-build for DOS (with DOS Extender)
                   gcw0    = OpenDingux cross-build for GCW Zero
+		  serenity= SenerityOS build
 
   RENDERER      the type of video output API (not available for PLATFORM=dos)
 		  sdl1    = SDL 1.2 (deprecated; no win64 support)
@@ -84,6 +85,7 @@ This Makefile supports the following options:
   SYSFLAGS      additional options for both the compiler and the linker
   LIBS		additional libraries to link
 
+  TOOLCHAIN_DIR	set path to toolchain for cross-compiling (e.g. serenity, gcw0, dos)
 endef
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -101,6 +103,7 @@ LIBASOUND = -lasound
 LIBIEEE1284 = -lieee1284
 SDL_CONFIG_PREFIX =
 OUTDIR_SUFFIX := INVALID
+TOOLCHAIN_DIR =
 
 ifeq ($(PLATFORM),)
 	OUTDIR_SUFFIX :=
@@ -135,14 +138,24 @@ endif
 
 ifeq ($(PLATFORM), gcw0)
         OUTDIR_SUFFIX := -gcw0
-        GCW0_TOOLCHAIN_DIR = /opt/gcw0-toolchain
+        TOOLCHAIN_DIR = /opt/gcw0-toolchain
         TOOLSET = mipsel-gcw0-linux-uclibc
-        TOOLDIR = $(GCW0_TOOLCHAIN_DIR)/usr/bin
+        TOOLDIR = $(TOOLCHAIN_DIR)/usr/bin
         DEFAULT_RENDERER = sdl2sw
-        SDL_CONFIG_PREFIX = $(GCW0_TOOLCHAIN_DIR)/usr/$(TOOLSET)/sysroot/usr/bin/
+        SDL_CONFIG_PREFIX = $(TOOLCHAIN_DIR)/usr/$(TOOLSET)/sysroot/usr/bin/
         DEFAULT_BUILDASCPP = 1
         # HACK: gcw0 misel architecture doesn't define O_PATH
         CXXFLAGS += -DO_PATH=010000000
+endif
+
+ifeq ($(PLATFORM), serenity)
+        OUTDIR_SUFFIX := -serenity
+	TOOLSET = i686-pc-serenity
+        TOOLDIR = $(TOOLCHAIN_DIR)/Local/i686/bin/
+        DEFAULT_RENDERER = sdl2sw
+        SDL_CONFIG_PREFIX = $(TOOLCHAIN_DIR)/../Build/i686/Root/usr/bin/
+        DEFAULT_BUILDASCPP = 1
+	LIBS += -lgui -lgfx -lcore -lipc -lcompress
 endif
 
 ifeq ($(OUTDIR_SUFFIX),INVALID)
