@@ -198,7 +198,7 @@ CKOBJECTS = ck_act.o ck_inter.o ck_keen.o ck_obj.o ck_map.o ck4_map.o ck5_map.o 
 OPLOBJECTS = opl/dbopl.o opl/nuked_opl3.o
 
 ifeq ($(PLATFORM), serenity)
- 	CKOBJECTS += main.o
+CKOBJECTS += main.o
 endif
 
 # data files
@@ -427,12 +427,6 @@ $(BINDIR):
 $(OBJDIR)/%.o: %.c $(SDL_DIR)
 	@mkdir -p $(dir $@)
 	$(CXX) $(SYSFLAGS) $(CXXFLAGS) $(SDL_CFLAGS) -c -MMD -o $@ $<
-
-ifeq ($(PLATFORM), serenity)
-	$(OBJDIR)/%.o: %.cpp $(SDL_DIR)
-		@mkdir -p $(dir $@)
-		$(CXX) $(SYSFLAGS) $(CXXFLAGS) $(SDL_CFLAGS) -c -MMD -o $@ $<
-endif
 
 $(OBJDIR)/windowsres.res: windowsres.rc
 	mkdir -p $(dir $@)
