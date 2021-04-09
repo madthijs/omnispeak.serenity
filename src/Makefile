@@ -101,6 +101,7 @@ LIBGL = -lGL
 LIBVULKAN = -lvulkan
 LIBASOUND = -lasound
 LIBIEEE1284 = -lieee1284
+SDL_CONFIG_PATH =
 SDL_CONFIG_PREFIX =
 OUTDIR_SUFFIX := INVALID
 TOOLCHAIN_DIR =
@@ -142,7 +143,7 @@ ifeq ($(PLATFORM), gcw0)
         TOOLSET = mipsel-gcw0-linux-uclibc
         TOOLDIR = $(TOOLCHAIN_DIR)/usr/bin
         DEFAULT_RENDERER = sdl2sw
-        SDL_CONFIG_PREFIX = $(TOOLCHAIN_DIR)/usr/$(TOOLSET)/sysroot/usr/bin/
+        SDL_CONFIG_PATH = $(TOOLCHAIN_DIR)/usr/$(TOOLSET)/sysroot/usr/bin/
         DEFAULT_BUILDASCPP = 1
         # HACK: gcw0 misel architecture doesn't define O_PATH
         CXXFLAGS += -DO_PATH=010000000
@@ -153,7 +154,9 @@ ifeq ($(PLATFORM), serenity)
 	TOOLSET = i686-pc-serenity
         TOOLDIR = $(TOOLCHAIN_DIR)/Local/i686/bin/
         DEFAULT_RENDERER = sdl2sw
-        SDL_CONFIG_PREFIX = $(TOOLCHAIN_DIR)/../Build/i686/Root/usr/bin/
+        SDL_CONFIG_PATH = $(TOOLCHAIN_DIR)/../Build/i686/Root/usr/bin/
+	# HACK: should not be need, but my sdl-config is broken
+	SDL_CONFIG_PREFIX = $(TOOLCHAIN_DIR)/../Build/i686/Root/usr
         DEFAULT_BUILDASCPP = 1
 	LIBS += -lgui -lgfx -lcore -lipc -lcompress -lpthread -lstdc++ -lm
 endif
@@ -274,12 +277,16 @@ endif
 
 # set parameters that depend on the SDL version (1/2)
 ifeq ($(RENDERER), sdl1)
-	SDL_CONFIG_BIN = $(SDL_CONFIG_PREFIX)sdl-config
+	SDL_CONFIG_BIN = $(SDL_CONFIG_PATH)sdl-config
 	SDL_VERSION = $(SDL1_VERSION)
 	SDL_URL = http://libsdl.org/release/SDL-devel-$(SDL_VERSION)-mingw32.tar.gz
 	SDL_LOCAL_PREFIX = SDL-$(SDL_VERSION)
 else
-	SDL_CONFIG_BIN = $(SDL_CONFIG_PREFIX)sdl2-config
+	ifneq ($(SDL_CONFIG_PREFIX), )
+	SDL_CONFIG_BIN = $(SDL_CONFIG_PATH)sdl2-config --prefix=$(SDL_CONFIG_PREFIX)
+	else
+	SDL_CONFIG_BIN = $(SDL_CONFIG_PATH)sdl2-config
+	endif
 	SDL_VERSION = $(SDL2_VERSION)
 	SDL_URL = http://libsdl.org/release/SDL2-devel-$(SDL_VERSION)-mingw.tar.gz
 	SDL_LOCAL_PREFIX = SDL2-$(SDL_VERSION)/$(TOOLSET)
