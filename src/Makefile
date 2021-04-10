@@ -1,6 +1,6 @@
-#Omnispeak: A Commander Keen Reimplementation
+#$(EXECNAME): A Commander Keen Reimplementation
 #Copyright (C) 2012 David Gow
-#Omnispeak is available at http://davidgow.net/keen/omnispeak.html
+#$(EXECNAME) is available at http://davidgow.net/keen/$(EXECNAME).html
 #
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ This Makefile supports the following options:
 
   DEBUG 	whether to include debug information (0/1; default: off)
   
-  VANILLA	whether to disable omnispeak-only features (0/1; default: off)
+  VANILLA	whether to disable $(EXECNAME)-only features (0/1; default: off)
 
   BUILDASCPP    whether to build as C++ code (0/1)
                   - defaults to 1 for Linux/Unix, 0 otherwise
@@ -62,7 +62,7 @@ This Makefile supports the following options:
                   - keen6e14 or keen6e15 (default)
 
   KEENPATH	set the default path to the Commander Keen data files
-  		  - defaults to '.' -- the current directory
+  		  - defaults to './data' -- the current data directory
 		  - can be overridden at runtime with /KEENPATH
 
   USERPATH	set the default path for user savegames
@@ -70,7 +70,7 @@ This Makefile supports the following options:
 		  - can be overridden at runtime with /USERPATH
 
   XDGUSERPATH	prefer XDG user paths to the default path above (0/1; default: off)
-  		  - these are typically ~/.local/share/Commander Keen/Omnispeak/*
+  		  - these are typically ~/.local/share/Commander Keen/$(EXECNAME)/*
 		  - requires SDL >= 2.0.1 (SDL_GetPrefPath())
 		  - uses a similar per-user path on other platforms
 		  - this path is used as a fallback even if this setting is off
@@ -105,6 +105,8 @@ SDL_CONFIG_PATH =
 SDL_CONFIG_PREFIX =
 OUTDIR_SUFFIX := INVALID
 TOOLCHAIN_DIR =
+KEENPATH = ./data
+EXECNAME = omnispeak
 
 ifeq ($(PLATFORM),)
 	OUTDIR_SUFFIX :=
@@ -159,6 +161,8 @@ ifeq ($(PLATFORM), serenity)
 	SDL_CONFIG_PREFIX = $(TOOLCHAIN_DIR)/../Build/i686/Root/usr
         DEFAULT_BUILDASCPP = 1
 	LIBS += -lgui -lgfx -lcore -lipc -lcompress -lpthread -lstdc++ -lm
+	EXECNAME = KEEN
+	CXXFLAGS = -std=c++2a
 endif
 
 ifeq ($(OUTDIR_SUFFIX),INVALID)
@@ -206,12 +210,12 @@ endif
 
 # data files
 DATAFILES = ACTION AUDINFOE AUDIODCT AUDIOHHD EGADICT EGAHEAD GFXINFOE MAPHEAD TILEINFO
-K4DATA = $(foreach f, $(DATAFILES), $(BINDIR)/$(f).CK4)
-K5DATA = $(foreach f, $(DATAFILES), $(BINDIR)/$(f).CK5)
-K6DATA = $(foreach f, $(DATAFILES), $(BINDIR)/$(f).CK6)
+K4DATA = $(foreach f, $(DATAFILES), $(BINDIR)/data/$(f).CK4)
+K5DATA = $(foreach f, $(DATAFILES), $(BINDIR)/data/$(f).CK5)
+K6DATA = $(foreach f, $(DATAFILES), $(BINDIR)/data/$(f).CK6)
 
 # output binary file
-OUTBIN = $(BINDIR)/omnispeak$(EXE_EXT)
+OUTBIN = $(BINDIR)/$(EXECNAME)$(EXE_EXT)
 
 # set BINPREFIX
 ifneq ($(TOOLSET),)
@@ -431,7 +435,7 @@ dumpconfig:
 $(BINDIR):
 	mkdir -p $(BINDIR)
 
-$(OBJDIR)/%.o: %.c $(SDL_DIR)
+$(OBJDIR)/%.o: %.c* $(SDL_DIR)
 	@mkdir -p $(dir $@)
 	$(CXX) $(SYSFLAGS) $(CXXFLAGS) $(SDL_CFLAGS) -c -MMD -o $@ $<
 
@@ -447,30 +451,33 @@ binfiles: keen4data keen5data keen6data
 keen4data: $(BINDIR) $(K4DATA)
 keen5data: $(BINDIR) $(K5DATA)
 keen6data: $(BINDIR) $(K6DATA)
-$(BINDIR)/%.CK4: ../data/keen4/%.CK4
+$(BINDIR)/data/%.CK4: ../data/keen4/%.CK4
+	mkdir -p $(BINDIR)/data
 	cp -f $< $@ 
-$(BINDIR)/%.CK5: ../data/keen5/%.CK5
+$(BINDIR)/data/%.CK5: ../data/keen5/%.CK5
+	mkdir -p $(BINDIR)/data
 	cp -f $< $@ 
-$(BINDIR)/%.CK6: ../data/$(KEEN6VER)/%.CK6
+$(BINDIR)/data/%.CK6: ../data/$(KEEN6VER)/%.CK6
+	mkdir -p $(BINDIR)/data
 	cp -f $< $@
 
 # generate Windows batch files to quickly start a specific episode
 batfiles: $(BATFILES)
 $(BINDIR)/_keen4.cmd:
-	echo -n "start omnispeak.exe /EPISODE 4 /NOWAIT" >$@
+	echo -n "start $(EXECNAME).exe /EPISODE 4 /NOWAIT" >$@
 $(BINDIR)/_keen5.cmd:
-	echo -n "start omnispeak.exe /EPISODE 5 /NOWAIT" >$@
+	echo -n "start $(EXECNAME).exe /EPISODE 5 /NOWAIT" >$@
 $(BINDIR)/_keen6.cmd:
-	echo -n "start omnispeak.exe /EPISODE 6 /NOWAIT" >$@
+	echo -n "start $(EXECNAME).exe /EPISODE 6 /NOWAIT" >$@
 
 # generate shell scripts to start specific episodes
 shellfiles: $(SHELLFILES)
 $(BINDIR)/keen4.sh:
-	echo -n "./omnispeak /EPISODE 4 $(SHELLOPTS)" >$@
+	echo -n "./$(EXECNAME) /EPISODE 4 $(SHELLOPTS)" >$@
 $(BINDIR)/keen5.sh:
-	echo -n "./omnispeak /EPISODE 5 $(SHELLOPTS)" >$@
+	echo -n "./$(EXECNAME) /EPISODE 5 $(SHELLOPTS)" >$@
 $(BINDIR)/keen6.sh:
-	echo -n "./omnispeak /EPISODE 6 $(SHELLOPTS)" >$@
+	echo -n "./$(EXECNAME) /EPISODE 6 $(SHELLOPTS)" >$@
 
 # auto-download of SDL
 $(SDL_DIR):
@@ -483,8 +490,8 @@ RMDIR_ERRMSG = Note: Some of the 'bin' directories still contain user data. They
 export RMDIR_ERRMSG
 distclean:
 	rm -rf ../obj*
-	rm -f ../bin*/omnispeak ../bin-*/omnispeak.exe ../bin-win*/_keen?.cmd
-	rm -f $(foreach f, $(DATAFILES), ../bin*/$(f).CK?)
+	rm -f ../bin*/$(EXECNAME) ../bin-*/$(EXECNAME).exe ../bin-win*/_keen?.cmd
+	rm -f $(foreach f, $(DATAFILES), ../bin*/data/$(f).CK?)
 	rmdir ../bin* || echo $$RMDIR_ERRMSG
 
 -include $(DEPS)

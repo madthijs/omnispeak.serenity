@@ -1,4 +1,18 @@
 {
 	"editor.tabSize": 8,
 	"editor.insertSpaces": false,
+	"files.associations": {
+		"application.h": "c",
+		"window.h": "c",
+		"function.h": "c",
+		"assertions.h": "c",
+		"ownptr.h": "c",
+		"nonnullownptr.h": "c",
+		"format.h": "c",
+		"optional.h": "c",
+		"stringview.h": "c",
+		"types.h": "c",
+		"kmalloc.h": "c",
+		"icon.h": "c"
+	},
 }
